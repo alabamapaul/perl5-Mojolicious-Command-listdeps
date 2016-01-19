@@ -173,9 +173,9 @@ sub run    ## no critic (RequireArgUnpacking)
       sub
       {
         my $opt_name  = shift;
-        my $opt_value = shift;
+        $cpanfile     = shift;
         ## If no value is provided, use the default "cpanfile"
-        $cpanfile = (defined($opt_value) ? $opt_value : qq{cpanfile});
+        $cpanfile = qq{cpanfile} unless ($cpanfile);
       },
   );
 
@@ -303,11 +303,17 @@ sub _process_results
       && $lib_dir           
       && ($lib_dir eq substr($module_info->file, 0, length($lib_dir))));
 
+    ## See if we are creating a cpanfile
     if ($cpanfh)
     {
+      ## Write module name to the file
       print {$cpanfh}(qq{require "$module"});
-      if (my $version = $module_info->version)
+      my $version;
+      eval { $version = $module_info->version; };
+      $version = qq{} if ($version and ($version eq qq{undef}));
+      if ($version)
       {
+        ## Write version information to the cpanfile
         print {$cpanfh}(qq{, "$version"});
       }
       print {$cpanfh}(qq{;\n});
