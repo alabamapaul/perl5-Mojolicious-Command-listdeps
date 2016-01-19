@@ -1,3 +1,7 @@
+## Editor backup files
+*~
+*.bak
+
 # Windows image file caches
 Thumbs.db
 ehthumbs.db
@@ -45,3 +49,27 @@ $RECYCLE.BIN/
 Network Trash Folder
 Temporary Items
 .apdisk
+
+# =========================
+# Perl related artifacts
+# =========================
+/blib/
+/.build/
+_build/
+cover_db/
+inc/
+Build
+!Build/
+Build.bat
+.last_cover_stats
+/Makefile
+/Makefile.old
+/MANIFEST.bak
+/META.yml
+/META.json
+/MYMETA.*
+nytprof.out
+/pm_to_blib
+*.o
+*.bs
+/_eumm/
