@@ -1,4 +1,7 @@
 {{$NEXT}}
+        Added --cpanfile command line option to generating a cpanfile for
+        use with cpanm, carton, or other utilities.
+        Now using GitHub to host the source.
 
 0.06    2012-12-03
         Now using GetOptions directly to ensure module still works when
