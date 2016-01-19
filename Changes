@@ -1,4 +1,6 @@
 {{$NEXT}}
+
+0.07    2016-01-19
         Added --cpanfile command line option to generating a cpanfile for
         use with cpanm, carton, or other utilities.
         Now using GitHub to host the source.
