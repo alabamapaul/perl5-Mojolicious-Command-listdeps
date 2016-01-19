@@ -12,6 +12,10 @@ package Mojolicious::Command::listdeps;
 Mojolicious::Command::listdeps - Command to list dependencies for a 
 Mojolicious project
 
+=head1 VERSION
+
+Version 0.07
+
 =head1 DESCRIPTION
 
 L<Mojolicious::Command::listdeps> lists all module dependencies, and
@@ -24,6 +28,38 @@ L<Mojolicious> project
 
   my $command = Mojolicious::Command::listdeps->new;
   $command->run(@ARGV);
+
+=head1 COMMANDLINE OPTIONS
+
+The listdeps command supports the following command line options:
+
+=over 2
+
+=item --include-tests
+
+Include dependencies required for tests
+
+=item --missing
+
+Only list missing modules
+
+=item --skip-lib
+
+Do not list modules found in ./lib as a dependency
+
+=item --verbose
+
+List additional information
+
+=item --core
+
+Include core modules in list
+
+=item --cpanfile
+
+Create or append module information to cpanfile
+
+=back
 
 =cut
 
@@ -38,7 +74,7 @@ use Module::CoreList;
 use Cwd qw(abs_path);
 use Getopt::Long qw(GetOptions :config pass_through);
 
-our $VERSION = "0.06";
+our $VERSION = "0.07";
 
 ##****************************************************************************
 ## Object attributes
@@ -83,6 +119,7 @@ These options are available:
   --skip-lib       Do not list modules found in ./lib as a dependency
   --verbose        List additional information
   --core           Include core modules in list
+  --cpanfile       Create or append module information to cpanfile 
 EOF
 
 ##-----------------------------------------
@@ -94,6 +131,7 @@ my $verbose       = 0;       ## Extra verbage
 my $skip_core     = 1;       ## Skip core modules
 my $skip_lib      = 0;       ## Skip modules found in ./lib
 my $lib_dir       = qq{};    ## Local ./lib if found
+my $cpanfile      = qq{};    ## Name of cpanfile
 
 ##****************************************************************************
 ## Object methods
@@ -131,6 +169,14 @@ sub run    ## no critic (RequireArgUnpacking)
     'missing'       => sub { $missing_only  = 1; },
     'skip-lib'      => sub { $skip_lib      = 1; },
     'verbose'       => sub { $verbose       = 1; },
+    'cpanfile:s'    => 
+      sub
+      {
+        my $opt_name  = shift;
+        my $opt_value = shift;
+        ## If no value is provided, use the default "cpanfile"
+        $cpanfile = (defined($opt_value) ? $opt_value : qq{cpanfile});
+      },
   );
 
   ## See if we can load the required modules
@@ -216,18 +262,31 @@ sub _process_results
 {
   my $modules_ref  = shift;
   my $core_modules = shift;
+  my $cpanfh;
 
   ## Set the include path for Module::Info
   my @new_inc = @INC;
   push(@new_inc, $lib_dir) if ($lib_dir);
 
+  ## Open file if needed
+  if ($cpanfile)
+  {
+    open($cpanfh, qq{>>}, $cpanfile);
+    print {$cpanfh} (qq{##}, qq{-} x 60, qq{\n});
+    print {$cpanfh} (qq{## Auto generated }, 
+      scalar(localtime), 
+      qq{\n## using $0 listdeps }, 
+      qq{--cpanfile "$cpanfile"\n});
+    print {$cpanfh} (qq{##}, qq{-} x 60, qq{\n});
+  }
+  
   ## Process the list
   foreach my $key (sort(keys(%{$modules_ref})))
   {
     ## Convert Module/Name.pm (if needed)
     my $module = $key;
     $module =~ s{/}{::}gx;
-
+    
     ## Skip core modules
     next if (exists($core_modules->{$module}) && $skip_core);
 
@@ -243,6 +302,16 @@ sub _process_results
       && $module_info
       && $lib_dir           
       && ($lib_dir eq substr($module_info->file, 0, length($lib_dir))));
+
+    if ($cpanfh)
+    {
+      print {$cpanfh}(qq{require "$module"});
+      if (my $version = $module_info->version)
+      {
+        print {$cpanfh}(qq{, "$version"});
+      }
+      print {$cpanfh}(qq{;\n});
+    }
 
     ## If we get here, then we need to list the file
     print($module);
@@ -263,6 +332,8 @@ sub _process_results
     print(qq{\n});
   }
 
+  ## Close the cpanfile (if it was open)
+  close($cpanfh) if ($cpanfh);
   return;
 
 }
