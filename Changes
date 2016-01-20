@@ -1,4 +1,7 @@
 {{$NEXT}}
+      * Bumped module version to 0.08
+      * In the dist.ini Added Module::Info, PPI, and Mojolicious to the 
+        run requirements to ensure the modules are loaded.
 
 0.07    2016-01-19
       * Added --cpanfile command line option to generating a cpanfile for
