@@ -1,4 +1,6 @@
 {{$NEXT}}
+
+0.08    2016-01-20
       * Bumped module version to 0.08
       * In the dist.ini Added Module::Info, PPI, and Mojolicious to the 
         run requirements to ensure the modules are loaded.
